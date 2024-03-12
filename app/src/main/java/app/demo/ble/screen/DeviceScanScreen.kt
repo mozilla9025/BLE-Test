@@ -2,6 +2,7 @@ package app.demo.ble.screen
 
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -52,6 +53,11 @@ fun DeviceScanScreen(
     ) {
         viewModel.refreshState()
     }
+    val locationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        viewModel.refreshState()
+    }
 
     LaunchedEffect(uiState.permissionState) {
         if (!uiState.btEnabled) return@LaunchedEffect
@@ -62,9 +68,14 @@ fun DeviceScanScreen(
         }
     }
 
+    LaunchedEffect(uiState.locationEnabled) {
+        viewModel.refreshState()
+    }
+
     DeviceScanScreenContent(uiState = uiState,
         toggleSearch = { viewModel.toggleScan(it) },
         enableBluetooth = { btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)) },
+        enableLocation = { locationLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) },
         toggleDeviceConnection = { viewModel.toggleDeviceConnection(it) }
     )
 }
@@ -74,6 +85,7 @@ private fun DeviceScanScreenContent(
     uiState: DeviceScanUiState,
     toggleSearch: (Boolean) -> Unit,
     enableBluetooth: () -> Unit,
+    enableLocation: () -> Unit,
     toggleDeviceConnection: (device: BleDevice) -> Unit
 ) {
     Column(
@@ -81,7 +93,19 @@ private fun DeviceScanScreenContent(
             .fillMaxSize()
             .background(MaterialTheme.colors.background),
     ) {
-        if (uiState.btEnabled) {
+        if (!uiState.btEnabled) {
+            Error(
+                text = "Bluetooth is disabled",
+                buttonActionText = "Enable Bluetooth",
+                buttonAction = enableBluetooth
+            )
+        } else if (!uiState.locationEnabled) {
+            Error(
+                text = "Location services are disabled",
+                buttonActionText = "Enable location",
+                buttonAction = enableLocation
+            )
+        } else {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -104,23 +128,30 @@ private fun DeviceScanScreenContent(
                     }
                 }
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(Spacings.spacingD.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Bluetooth is disabled",
-                    style = MaterialTheme.typography.body1
-                )
+        }
+    }
+}
 
-                Button(onClick = enableBluetooth) {
-                    Text(text = "Enable Bluetooth")
-                }
-            }
+@Composable
+private fun Error(
+    text: String,
+    buttonActionText: String,
+    buttonAction: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(Spacings.spacingD.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.body1
+        )
+
+        Button(onClick = buttonAction) {
+            Text(text = buttonActionText)
         }
     }
 }
@@ -200,6 +231,6 @@ private fun DeviceListScreenPreview() {
     )
 
     BLEDemoTheme {
-        DeviceScanScreenContent(uiState, {}, {}, {})
+        DeviceScanScreenContent(uiState, {}, {}, {}, {})
     }
 }

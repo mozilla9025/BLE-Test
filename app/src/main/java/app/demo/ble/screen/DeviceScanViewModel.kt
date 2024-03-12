@@ -4,9 +4,12 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
+import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.demo.ble.ble.BleDeviceManager
@@ -38,6 +41,7 @@ class DeviceScanViewModel @Inject constructor(
         _uiState.mutate {
             this.copy(
                 btEnabled = bleDeviceManager.isBtEnabled(),
+                locationEnabled = isLocationEnabled(),
             )
         }
     }
@@ -68,7 +72,12 @@ class DeviceScanViewModel @Inject constructor(
     }
 
     fun refreshState() {
-        _uiState.mutate { copy(btEnabled = bleDeviceManager.isBtEnabled()) }
+        _uiState.mutate {
+            copy(
+                btEnabled = bleDeviceManager.isBtEnabled(),
+                locationEnabled = isLocationEnabled()
+            )
+        }
     }
 
     fun processPermissions(granted: Map<String, @JvmSuppressWildcards Boolean>) {
@@ -122,6 +131,12 @@ class DeviceScanViewModel @Inject constructor(
 
     private fun stopScan() {
         bleDiscoveryScanner.stopScan()
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        return context.getSystemService<LocationManager>()?.let {
+            LocationManagerCompat.isLocationEnabled(it)
+        } ?: false
     }
 
     @SuppressLint("MissingPermission")
