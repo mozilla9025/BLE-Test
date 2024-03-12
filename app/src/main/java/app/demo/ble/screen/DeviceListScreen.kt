@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package app.demo.ble.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.PullRefreshState
@@ -25,7 +30,6 @@ import app.demo.ble.network.model.Device
 import app.demo.ble.ui.theme.BLEDemoTheme
 import app.demo.ble.ui.theme.Spacings
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DeviceListScreen(
     viewModel: DeviceListViewModel = viewModel()
@@ -38,7 +42,6 @@ fun DeviceListScreen(
     DeviceListScreenContent(pullToRefreshState, uiState)
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun DeviceListScreenContent(
     pullToRefreshState: PullRefreshState,
@@ -47,13 +50,18 @@ private fun DeviceListScreenContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colors.background)
             .pullRefresh(pullToRefreshState),
         contentAlignment = Alignment.TopStart
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            uiState.devices.forEach {
+            uiState.devices.forEachIndexed { index, device ->
                 item {
-                    DeviceItemViewHolder(it, {})
+                    DeviceItemViewHolder(device, {})
+
+                    if (index < uiState.devices.lastIndex) {
+                        Divider()
+                    }
                 }
             }
         }
@@ -78,13 +86,12 @@ private fun DeviceItemViewHolder(
             .padding(Spacings.spacingD.dp),
         verticalArrangement = Arrangement.spacedBy(Spacings.spacingA.dp)
     ) {
-        Text(text = device.model)
-        Text(text = device.macAddress)
+        Text(text = device.model, style = MaterialTheme.typography.h6)
+        Text(text = device.macAddress, style = MaterialTheme.typography.body2)
     }
 }
 
 @Composable
-@OptIn(ExperimentalMaterialApi::class)
 @Preview(device = "id:pixel_5")
 private fun DeviceListScreenPreview() {
     val pullToRefreshState = rememberPullRefreshState(refreshing = true, onRefresh = {})
