@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">BLE Demo</string>
+
+    <string name="scan_results_error_bluetooth_disabled">Bluetooth is disabled</string>
+    <string name="scan_results_action_enable_bluetooth">Enable Bluetooth</string>
+    <string name="scan_results_error_location_disabled">Location services are disabled</string>
+    <string name="scan_results_action_enable_location">Enable location</string>
+    <string name="scan_results_action_enable_scan">Enable scan</string>
+    <string name="scan_results_item_service">Service:</string>
+    <string name="scan_results_item_characteristic">Characteristics:</string>
+    <string name="scan_results_connection_action_disconnect">Disconnect</string>
+    <string name="scan_results_connection_action_connecting">Connecting</string>
+    <string name="scan_results_connection_action_connect">Connect</string>
+    <string name="scan_results_device_name_unknown">Unknown</string>
+    <string name="device_list_error_action_retry">Try again</string>
+
 </resources>

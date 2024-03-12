@@ -7,6 +7,10 @@ import androidx.lifecycle.viewModelScope
 import app.demo.ble.domain.repository.DeviceRepository
 import app.demo.ble.util.CoroutineDispatcherProvider
 import app.demo.ble.util.mutate
+import arrow.retrofit.adapter.either.networkhandling.CallError
+import arrow.retrofit.adapter.either.networkhandling.HttpError
+import arrow.retrofit.adapter.either.networkhandling.IOError
+import arrow.retrofit.adapter.either.networkhandling.UnexpectedCallError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,16 +37,30 @@ class DeviceListViewModel @Inject constructor(
                 deviceRepository.getDevices()
             }
                 .onLeft {
-                    _uiState.mutate { copy(loadingState = LoadingState.None) }
+                    _uiState.mutate {
+                        copy(
+                            loadingState = LoadingState.None,
+                            errorState = ErrorState.Error(mapError(it))
+                        )
+                    }
                 }
                 .onRight {
                     _uiState.mutate {
                         copy(
                             devices = it.devices,
-                            loadingState = LoadingState.None
+                            loadingState = LoadingState.None,
+                            errorState = ErrorState.None
                         )
                     }
                 }
+        }
+    }
+
+    private fun mapError(callError: CallError): String {
+        return when (callError) {
+            is HttpError -> callError.message
+            is IOError -> callError.cause.localizedMessage ?: ""
+            is UnexpectedCallError -> callError.cause.localizedMessage ?: ""
         }
     }
 }

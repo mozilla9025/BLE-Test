@@ -27,9 +27,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.demo.ble.R.string.scan_results_action_enable_bluetooth
+import app.demo.ble.R.string.scan_results_action_enable_location
+import app.demo.ble.R.string.scan_results_action_enable_scan
+import app.demo.ble.R.string.scan_results_connection_action_connect
+import app.demo.ble.R.string.scan_results_connection_action_connecting
+import app.demo.ble.R.string.scan_results_connection_action_disconnect
+import app.demo.ble.R.string.scan_results_device_name_unknown
+import app.demo.ble.R.string.scan_results_error_bluetooth_disabled
+import app.demo.ble.R.string.scan_results_error_location_disabled
+import app.demo.ble.R.string.scan_results_item_characteristic
+import app.demo.ble.R.string.scan_results_item_service
 import app.demo.ble.ble.model.BleCharacteristic
 import app.demo.ble.ble.model.BleDevice
 import app.demo.ble.ble.model.BleService
@@ -94,15 +106,15 @@ private fun DeviceScanScreenContent(
             .background(MaterialTheme.colors.background),
     ) {
         if (!uiState.btEnabled) {
-            Error(
-                text = "Bluetooth is disabled",
-                buttonActionText = "Enable Bluetooth",
+            ErrorView(
+                text = stringResource(id = scan_results_error_bluetooth_disabled),
+                buttonActionText = stringResource(id = scan_results_action_enable_bluetooth),
                 buttonAction = enableBluetooth
             )
         } else if (!uiState.locationEnabled) {
-            Error(
-                text = "Location services are disabled",
-                buttonActionText = "Enable location",
+            ErrorView(
+                text = stringResource(id = scan_results_error_location_disabled),
+                buttonActionText = stringResource(id = scan_results_action_enable_location),
                 buttonAction = enableLocation
             )
         } else {
@@ -115,7 +127,8 @@ private fun DeviceScanScreenContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Enable scan")
+                Text(text = stringResource(id = scan_results_action_enable_scan))
+
                 Switch(
                     checked = uiState.scanEnabled,
                     onCheckedChange = toggleSearch
@@ -132,29 +145,6 @@ private fun DeviceScanScreenContent(
     }
 }
 
-@Composable
-private fun Error(
-    text: String,
-    buttonActionText: String,
-    buttonAction: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(Spacings.spacingD.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.body1
-        )
-
-        Button(onClick = buttonAction) {
-            Text(text = buttonActionText)
-        }
-    }
-}
 
 @Composable
 private fun DeviceScanViewHolder(
@@ -172,7 +162,10 @@ private fun DeviceScanViewHolder(
         Column(
             verticalArrangement = Arrangement.spacedBy(Spacings.spacingA.dp)
         ) {
-            Text(text = device.name ?: "", style = MaterialTheme.typography.h6)
+            Text(
+                text = device.name ?: stringResource(id = scan_results_device_name_unknown),
+                style = MaterialTheme.typography.h6
+            )
             Text(text = device.macAddress, style = MaterialTheme.typography.subtitle1)
 
             AnimatedVisibility(
@@ -180,12 +173,18 @@ private fun DeviceScanViewHolder(
             ) {
                 Column {
                     device.services.forEach { service ->
-                        Text(text = "Service: ", style = MaterialTheme.typography.body1)
+                        Text(
+                            text = stringResource(id = scan_results_item_service),
+                            style = MaterialTheme.typography.body1
+                        )
                         Text(text = service.uuid, style = MaterialTheme.typography.body2)
 
                         Spacer(modifier = Modifier.height(Spacings.spacingA.dp))
 
-                        Text(text = "Characteristics: ", style = MaterialTheme.typography.body1)
+                        Text(
+                            text = stringResource(id = scan_results_item_characteristic),
+                            style = MaterialTheme.typography.body1
+                        )
                         service.characteristics.forEach { characteristic ->
                             Text(text = characteristic.uuid, style = MaterialTheme.typography.body2)
                         }
@@ -199,9 +198,9 @@ private fun DeviceScanViewHolder(
             enabled = device.connectionState != BleDevice.ConnectionState.Connecting
         ) {
             val text = when (device.connectionState) {
-                BleDevice.ConnectionState.Connected -> "Disconnect"
-                BleDevice.ConnectionState.Connecting -> "Connecting"
-                BleDevice.ConnectionState.Disconnected -> "Connect"
+                BleDevice.ConnectionState.Connected -> stringResource(id = scan_results_connection_action_disconnect)
+                BleDevice.ConnectionState.Connecting -> stringResource(id = scan_results_connection_action_connecting)
+                BleDevice.ConnectionState.Disconnected -> stringResource(id = scan_results_connection_action_connect)
             }
             Text(text = text)
         }
